@@ -53,7 +53,7 @@
         },
         {
           "project": "worker",
-          "script": "typecheck"
+          "script": "build"
         }
       ]
     },
@@ -61,11 +61,15 @@
       "steps": [
         {
           "project": "client",
-          "script": "build"
+          "script": "typecheck"
         },
         {
           "project": "worker",
           "script": "typecheck"
+        },
+        {
+          "project": "worker",
+          "script": "test"
         }
       ]
     },
@@ -74,6 +78,30 @@
         {
           "project": "worker",
           "script": "test"
+        }
+      ]
+    },
+    "lint": {
+      "steps": [
+        {
+          "project": "client",
+          "script": "lint"
+        },
+        {
+          "project": "worker",
+          "script": "lint"
+        }
+      ]
+    },
+    "deploy": {
+      "steps": [
+        {
+          "project": "client",
+          "script": "build"
+        },
+        {
+          "project": "worker",
+          "script": "deploy"
         }
       ]
     }
