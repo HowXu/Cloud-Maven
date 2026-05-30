@@ -117,7 +117,7 @@ maven-worker/test/
 
 ### 2026-05-30 - 前端 -> 后端
 
-状态：待处理
+状态：已完成
 来源：agents/Client.md | intro.config.ts 静态化
 需求：
 - `introImage` 字段不再需要，请从 `/api/admin/settings` 接口及 KV 中移除 `intro_image` key 相关逻辑
@@ -125,6 +125,12 @@ maven-worker/test/
 - 介绍卡片相关数据改由前端静态配置文件 `intro.config.ts` 提供
 
 验收：
-- `/api/admin/settings` GET/PUT 接口不再包含 `introImage` 字段
-- KV 中不再读写 `intro_image` key
-- 前端 SettingsPage 不再展示 introImage 字段
+- ✅ `/api/admin/settings` GET/PUT 接口不再包含 `introImage` 字段
+- ✅ KV 中不再读写 `intro_image` key
+- ✅ 前端 SettingsPage 不再展示 introImage 字段
+
+当前进展：
+- `ClientSettings` 接口（`env.ts:32-40`）不包含 `introImage` 字段
+- `DEFAULT_SETTINGS`（`config/index.ts:12-20`）不包含 `introImage`
+- `admin/index.ts` GET/PUT `/settings` 路由只返回 title/baseUrl/defaultRepository/anonymousRead/allowOverwrite/generateChecksums/maintainMetadata
+- 全项目 grep 确认无 `introImage` 或 `intro_image` 残留引用

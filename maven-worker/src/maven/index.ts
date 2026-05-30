@@ -266,9 +266,8 @@ ${newVersions.map(v => `    <version>${xmlEscape(v)}</version>`).join('\n')}
   })
 }
 
-export async function handleFileGet(c: Context<AppEnv>): Promise<Response> {
+async function doFileGet(c: Context<AppEnv>, mavenPath: string): Promise<Response> {
   if (!c.env.MAVEN_BUCKET) return c.notFound()
-  const mavenPath = extractMavenPath(c)
 
   try {
     normalizeMavenPath(mavenPath)
@@ -293,9 +292,8 @@ export async function handleFileGet(c: Context<AppEnv>): Promise<Response> {
   })
 }
 
-export async function handleFileHead(c: Context<AppEnv>): Promise<Response> {
+async function doFileHead(c: Context<AppEnv>, mavenPath: string): Promise<Response> {
   if (!c.env.MAVEN_BUCKET) return c.notFound()
-  const mavenPath = extractMavenPath(c)
 
   try {
     normalizeMavenPath(mavenPath)
@@ -320,9 +318,18 @@ export async function handleFileHead(c: Context<AppEnv>): Promise<Response> {
   })
 }
 
-export async function handleFilePut(c: Context<AppEnv>): Promise<Response> {
-  if (!c.env.MAVEN_BUCKET) throw badRequest('Storage not configured')
+export async function handleFileGet(c: Context<AppEnv>): Promise<Response> {
   const mavenPath = extractMavenPath(c)
+  return doFileGet(c, mavenPath)
+}
+
+export async function handleFileHead(c: Context<AppEnv>): Promise<Response> {
+  const mavenPath = extractMavenPath(c)
+  return doFileHead(c, mavenPath)
+}
+
+async function doFilePut(c: Context<AppEnv>, mavenPath: string): Promise<Response> {
+  if (!c.env.MAVEN_BUCKET) throw badRequest('Storage not configured')
   normalizeMavenPath(mavenPath)
 
   await ensureWriteAccess(c, mavenPath)
@@ -372,6 +379,11 @@ export async function handleFilePut(c: Context<AppEnv>): Promise<Response> {
   }
 
   return jsonData(c, response, 201)
+}
+
+export async function handleFilePut(c: Context<AppEnv>): Promise<Response> {
+  const mavenPath = extractMavenPath(c)
+  return doFilePut(c, mavenPath)
 }
 
 export async function handleFileDelete(c: Context<AppEnv>): Promise<Response> {
@@ -584,6 +596,30 @@ async function details(c: Context<AppEnv>): Promise<Response> {
     entries,
   })
 }
+
+mavenApiRoutes.get('/upload/:path{.*}', async (c) => {
+  const mavenPath = c.req.param('path') || ''
+  if (!mavenPath) throw badRequest('Path is required')
+  return doFileGet(c, mavenPath)
+})
+
+mavenApiRoutes.on('HEAD', '/upload/:path{.*}', async (c) => {
+  const mavenPath = c.req.param('path') || ''
+  if (!mavenPath) throw badRequest('Path is required')
+  return doFileHead(c, mavenPath)
+})
+
+mavenApiRoutes.put('/upload/:path{.*}', async (c) => {
+  const mavenPath = c.req.param('path') || ''
+  if (!mavenPath) throw badRequest('Path is required')
+  return doFilePut(c, mavenPath)
+})
+
+mavenApiRoutes.post('/upload/:path{.*}', async (c) => {
+  const mavenPath = c.req.param('path') || ''
+  if (!mavenPath) throw badRequest('Path is required')
+  return doFilePut(c, mavenPath)
+})
 
 mavenApiRoutes.get('/details', details)
 mavenApiRoutes.get('/details/:path{.*}', details)
