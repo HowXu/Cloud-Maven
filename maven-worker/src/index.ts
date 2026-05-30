@@ -80,13 +80,14 @@ app.post('/*', handleFilePut)
 app.delete('/*', handleFileDelete)
 
 app.onError((error, c) => {
-  if (c.env.MAVEN_KV) {
+  const kv = c.env.MAVEN_KV
+  if (kv) {
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     c.executionCtx.waitUntil(
       (async () => {
         const key = `stats:daily:${today}:errors`
-        const current = await c.env.MAVEN_KV.get(key)
-        await c.env.MAVEN_KV.put(key, String((Number(current) || 0) + 1))
+        const current = await kv.get(key)
+        await kv.put(key, String((Number(current) || 0) + 1))
         return undefined
       })()
     )

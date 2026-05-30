@@ -463,6 +463,9 @@ async function generatePom(c: Context<AppEnv>, rawPath: string): Promise<Respons
   await ensureWriteAccess(c, pomPath)
   await ensureRedeployAllowed(c, pomPath)
 
+  const bucket = c.env.MAVEN_BUCKET
+  if (!bucket) throw badRequest('Storage not configured')
+
   const pom = buildPomXml({
     groupId: body.groupId,
     artifactId: body.artifactId,
@@ -472,7 +475,7 @@ async function generatePom(c: Context<AppEnv>, rawPath: string): Promise<Respons
     description: body.description,
   })
 
-  const obj = await putObject(c.env.MAVEN_BUCKET, pomPath, pom, {
+  const obj = await putObject(bucket, pomPath, pom, {
     httpMetadata: { contentType: 'application/xml; charset=utf-8' },
   })
 

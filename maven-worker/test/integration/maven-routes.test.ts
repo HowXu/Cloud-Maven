@@ -18,14 +18,14 @@ const PRIVATE_POLICY: RepositoryPolicy = {
 const requestUrl = (path: string) => `https://cloud-maven.test${path}`
 
 const setPolicy = (policy: RepositoryPolicy) =>
-  env.MAVEN_KV.put('config:repository', JSON.stringify(policy))
+  env.MAVEN_KV!.put('config:repository', JSON.stringify(policy))
 
 const createAuthHeader = async (
   permissions: AccessPermission[] = [{ path: '/', actions: ['read', 'write', 'delete', 'manage'] }],
 ) => {
   const name = `token-${crypto.randomUUID()}`
   const secret = `secret-${crypto.randomUUID()}`
-  await createToken(env.MAVEN_KV, name, secret, permissions)
+  await createToken(env.MAVEN_KV!, name, secret, permissions)
   return {
     Authorization: `xBasic ${btoa(`${name}:${secret}`)}`,
   }
@@ -45,7 +45,7 @@ describe('Worker Maven routes', () => {
 
   it('streams public Maven files directly from R2', async () => {
     const path = `releases/com/example/demo/${crypto.randomUUID()}/demo.pom`
-    await env.MAVEN_BUCKET.put(path, '<project />', {
+    await env.MAVEN_BUCKET!.put(path, '<project />', {
       httpMetadata: {
         contentType: 'application/xml',
       },
@@ -61,12 +61,12 @@ describe('Worker Maven routes', () => {
 
   it('returns directory details needed by the frontend browser', async () => {
     const base = `releases/com/example/demo-${crypto.randomUUID()}`
-    await env.MAVEN_BUCKET.put(`${base}/maven-metadata.xml`, '<metadata />', {
+    await env.MAVEN_BUCKET!.put(`${base}/maven-metadata.xml`, '<metadata />', {
       httpMetadata: {
         contentType: 'application/xml',
       },
     })
-    await env.MAVEN_BUCKET.put(`${base}/1.0.0/demo-1.0.0.jar`, 'jar-content')
+    await env.MAVEN_BUCKET!.put(`${base}/1.0.0/demo-1.0.0.jar`, 'jar-content')
 
     const response = await SELF.fetch(requestUrl(`/api/maven/details/${base}`))
     const body = await response.json() as {
@@ -149,7 +149,7 @@ describe('Worker Maven routes', () => {
       size: 'jar-content'.length,
       checksums: {},
     })
-    const stored = await env.MAVEN_BUCKET.get(path)
+    const stored = await env.MAVEN_BUCKET!.get(path)
     expect(stored).not.toBeNull()
     await expect(stored!.text()).resolves.toBe('jar-content')
 
@@ -190,7 +190,7 @@ describe('Worker Maven routes', () => {
   it('deletes files with delete permission', async () => {
     const authHeader = await createAuthHeader()
     const path = `releases/com/example/demo/${crypto.randomUUID()}/demo-1.0.0.jar`
-    await env.MAVEN_BUCKET.put(path, 'jar-content')
+    await env.MAVEN_BUCKET!.put(path, 'jar-content')
 
     const response = await SELF.fetch(requestUrl(`/${path}`), {
       method: 'DELETE',
@@ -204,7 +204,7 @@ describe('Worker Maven routes', () => {
       type: 'FILE',
       deletedCount: 1,
     })
-    await expect(env.MAVEN_BUCKET.get(path)).resolves.toBeNull()
+    await expect(env.MAVEN_BUCKET!.get(path)).resolves.toBeNull()
   })
 
   it('deletes artifact directories via the artifacts API endpoint', async () => {
@@ -212,8 +212,8 @@ describe('Worker Maven routes', () => {
     const base = `releases/com/example/demo-${crypto.randomUUID()}`
     const firstPath = `${base}/1.0.0/demo-1.0.0.jar`
     const secondPath = `${base}/1.0.0/demo-1.0.0.pom`
-    await env.MAVEN_BUCKET.put(firstPath, 'jar-content')
-    await env.MAVEN_BUCKET.put(secondPath, '<project />')
+    await env.MAVEN_BUCKET!.put(firstPath, 'jar-content')
+    await env.MAVEN_BUCKET!.put(secondPath, '<project />')
 
     const response = await SELF.fetch(requestUrl(`/api/maven/artifacts/${base}`), {
       method: 'DELETE',
@@ -227,8 +227,8 @@ describe('Worker Maven routes', () => {
       type: 'DIRECTORY',
       deletedCount: 2,
     })
-    await expect(env.MAVEN_BUCKET.get(firstPath)).resolves.toBeNull()
-    await expect(env.MAVEN_BUCKET.get(secondPath)).resolves.toBeNull()
+    await expect(env.MAVEN_BUCKET!.get(firstPath)).resolves.toBeNull()
+    await expect(env.MAVEN_BUCKET!.get(secondPath)).resolves.toBeNull()
   })
 
   it('deletes artifact directories by prefix', async () => {
@@ -236,8 +236,8 @@ describe('Worker Maven routes', () => {
     const base = `releases/com/example/demo-${crypto.randomUUID()}`
     const firstPath = `${base}/1.0.0/demo-1.0.0.jar`
     const secondPath = `${base}/1.0.0/demo-1.0.0.pom`
-    await env.MAVEN_BUCKET.put(firstPath, 'jar-content')
-    await env.MAVEN_BUCKET.put(secondPath, '<project />')
+    await env.MAVEN_BUCKET!.put(firstPath, 'jar-content')
+    await env.MAVEN_BUCKET!.put(secondPath, '<project />')
 
     const response = await SELF.fetch(requestUrl(`/${base}`), {
       method: 'DELETE',
@@ -251,8 +251,8 @@ describe('Worker Maven routes', () => {
       type: 'DIRECTORY',
       deletedCount: 2,
     })
-    await expect(env.MAVEN_BUCKET.get(firstPath)).resolves.toBeNull()
-    await expect(env.MAVEN_BUCKET.get(secondPath)).resolves.toBeNull()
+    await expect(env.MAVEN_BUCKET!.get(firstPath)).resolves.toBeNull()
+    await expect(env.MAVEN_BUCKET!.get(secondPath)).resolves.toBeNull()
   })
 
   it('generates a minimal POM at the Maven coordinate path', async () => {
@@ -275,14 +275,14 @@ describe('Worker Maven routes', () => {
     expect(response.status).toBe(201)
     expect(body.path).toBe('com/example/demo/1.0.0/demo-1.0.0.pom')
 
-    const pom = await env.MAVEN_BUCKET.get(body.path)
+    const pom = await env.MAVEN_BUCKET!.get(body.path)
     expect(pom).not.toBeNull()
     await expect(pom!.text()).resolves.toContain('<name>Demo &lt;Library&gt;</name>')
   })
 
   it('reads Maven metadata through the versions helper endpoint', async () => {
     const base = `releases/com/example/demo-${crypto.randomUUID()}`
-    await env.MAVEN_BUCKET.put(`${base}/maven-metadata.xml`, `
+    await env.MAVEN_BUCKET!.put(`${base}/maven-metadata.xml`, `
       <metadata>
         <groupId>com.example</groupId>
         <artifactId>demo</artifactId>
@@ -325,7 +325,7 @@ describe('Worker Maven routes', () => {
 
   it('denies anonymous reads when the repository policy is private', async () => {
     const path = `releases/com/example/demo/${crypto.randomUUID()}/demo.pom`
-    await env.MAVEN_BUCKET.put(path, '<project />')
+    await env.MAVEN_BUCKET!.put(path, '<project />')
     await setPolicy(PRIVATE_POLICY)
 
     const anonymous = await SELF.fetch(requestUrl(`/${path}`))

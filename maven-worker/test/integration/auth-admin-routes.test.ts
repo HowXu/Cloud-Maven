@@ -17,7 +17,7 @@ const createAuthHeader = async (
 ) => {
   const name = `token-${crypto.randomUUID()}`
   const secret = `secret-${crypto.randomUUID()}`
-  const token = await createToken(env.MAVEN_KV, name, secret, permissions, 'test token')
+  const token = await createToken(env.MAVEN_KV!, name, secret, permissions, 'test token')
   return {
     token,
     secret,
@@ -29,7 +29,7 @@ const createAuthHeader = async (
 
 describe('Worker auth and admin routes', () => {
   beforeEach(async () => {
-    await env.MAVEN_KV.put('config:repository', JSON.stringify(PUBLIC_POLICY))
+    await env.MAVEN_KV!.put('config:repository', JSON.stringify(PUBLIC_POLICY))
   })
 
   it('creates a session with login and accepts bearer session authentication', async () => {
@@ -276,8 +276,8 @@ describe('Worker auth and admin routes', () => {
   it('returns admin stats using R2 object summaries', async () => {
     const { headers } = await createAuthHeader()
     const prefix = `stats-${crypto.randomUUID()}`
-    await env.MAVEN_BUCKET.put(`${prefix}/one.txt`, 'one')
-    await env.MAVEN_BUCKET.put(`${prefix}/two.txt`, 'two')
+    await env.MAVEN_BUCKET!.put(`${prefix}/one.txt`, 'one')
+    await env.MAVEN_BUCKET!.put(`${prefix}/two.txt`, 'two')
 
     const response = await SELF.fetch(requestUrl('/api/admin/stats'), {
       headers,
