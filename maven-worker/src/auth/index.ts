@@ -93,13 +93,35 @@ function tokenDetails(token: AccessToken) {
   }
 }
 
+function parseBasicHeader(header: string): { name: string; secret: string } | null {
+  const trimmed = header.trim()
+  const [scheme, encoded] = trimmed.split(/\s+/, 2)
+  if (scheme?.toLowerCase() !== 'basic' || !encoded) return null
+
+  try {
+    const decoded = atob(encoded)
+    const colonIndex = decoded.indexOf(':')
+    if (colonIndex === -1) return null
+    return {
+      name: decoded.slice(0, colonIndex),
+      secret: decoded.slice(colonIndex + 1),
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function parseToken(c: Context<AppEnv>): Promise<AccessToken | null> {
   if (!c.env.MAVEN_KV) return null
   const header = c.req.header('Authorization')
   if (header) {
-    const parsed = parseXBasicHeader(header)
-    if (parsed) {
-      return validateToken(c.env.MAVEN_KV, parsed.name, parsed.secret)
+    const xBasic = parseXBasicHeader(header)
+    if (xBasic) {
+      return validateToken(c.env.MAVEN_KV, xBasic.name, xBasic.secret)
+    }
+    const basic = parseBasicHeader(header)
+    if (basic) {
+      return validateToken(c.env.MAVEN_KV, basic.name, basic.secret)
     }
   }
 
