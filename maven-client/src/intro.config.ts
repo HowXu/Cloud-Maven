@@ -9,6 +9,6 @@ export const introConfig: IntroConfig = {
   title: "Cloud Maven",
   lines: [
     "基于 Cloudflare Workers的轻量 Maven 仓库",
-    "github.com/HowXu/cloud-maven"
+    "https://github.com/HowXu/cloud-maven"
   ],
 };
