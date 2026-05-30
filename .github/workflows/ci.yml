@@ -1,0 +1,65 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'maven-client/**'
+      - 'maven-worker/**'
+      - 'yarn.lock'
+      - '.github/workflows/test.yml'
+  pull_request:
+    paths:
+      - 'maven-client/**'
+      - 'maven-worker/**'
+      - 'yarn.lock'
+      - '.github/workflows/test.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  client-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Typecheck client
+        run: yarn typecheck:client
+
+      - name: Run client tests
+        run: yarn test:client
+
+  worker-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Typecheck worker
+        run: yarn typecheck:worker
+
+      - name: Run worker tests
+        run: yarn test:worker
