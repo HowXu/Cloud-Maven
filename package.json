@@ -20,6 +20,7 @@
     "test:client": "node scripts/workspace.mjs run client test",
     "test:worker": "node scripts/workspace.mjs run worker test",
     "typecheck:worker": "node scripts/workspace.mjs run worker typecheck",
+    "typecheck:client": "node scripts/workspace.mjs run client typecheck",
     "deploy": "node scripts/workspace.mjs run worker deploy",
     "deploy:worker": "node scripts/workspace.mjs run worker deploy"
   }
