@@ -6,12 +6,14 @@ on:
       - "maven-client/**"
       - "maven-worker/**"
       - "yarn.lock"
+      - "package.json"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "maven-client/**"
       - "maven-worker/**"
       - "yarn.lock"
+      - "package.json"
       - ".github/workflows/ci.yml"
 
 concurrency:
