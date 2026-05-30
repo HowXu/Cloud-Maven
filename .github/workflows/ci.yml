@@ -2,18 +2,17 @@ name: Test
 
 on:
   push:
-    branches: [master]
     paths:
       - 'maven-client/**'
       - 'maven-worker/**'
       - 'yarn.lock'
-      - '.github/workflows/test.yml'
+      - '.github/workflows/ci.yml'
   pull_request:
     paths:
       - 'maven-client/**'
       - 'maven-worker/**'
       - 'yarn.lock'
-      - '.github/workflows/test.yml'
+      - '.github/workflows/ci.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
